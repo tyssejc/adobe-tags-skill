@@ -1,0 +1,16 @@
+{
+  "name": "cadmium",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": { "cadmium": "./bin/cadmium.ts" },
+  "scripts": {
+    "test": "bun test",
+    "cadmium": "bun run bin/cadmium.ts"
+  },
+  "dependencies": {
+    "smol-toml": "^1.6.1"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}
