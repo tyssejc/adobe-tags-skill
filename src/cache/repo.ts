@@ -110,4 +110,36 @@ export function resetDerivedTables(db: Database): void {
   db.query("DELETE FROM rule_triggers").run();
   db.query("DELETE FROM data_element_refs").run();
   db.query("DELETE FROM rule_components_ix").run();
+  db.query("DELETE FROM library_revisions").run();
+}
+
+export function recordLibrary(db: Database, lib: { id: string; name: string; state: string; built_at: string | null; environment_id: string | null }): void {
+  db.query("INSERT OR REPLACE INTO libraries (id, name, state, built_at, environment_id) VALUES (?, ?, ?, ?, ?)")
+    .run(lib.id, lib.name, lib.state, lib.built_at, lib.environment_id);
+}
+
+export function recordEnvironment(db: Database, env: { id: string; name: string; stage: string; active_library_id: string | null }): void {
+  db.query("INSERT OR REPLACE INTO environments (id, name, stage, active_library_id) VALUES (?, ?, ?, ?)")
+    .run(env.id, env.name, env.stage, env.active_library_id);
+}
+
+export function recordLibraryRevision(db: Database, libraryId: string, resourceId: string, revisionNumber: number): void {
+  db.query("INSERT INTO library_revisions (library_id, resource_id, revision_number) VALUES (?, ?, ?)")
+    .run(libraryId, resourceId, revisionNumber);
+}
+
+export interface UnpublishedRow { id: string; name: string; type: string; head_revision_number: number; published_revision_number: number | null; }
+
+export function unpublishedResources(db: Database, stage: string): UnpublishedRow[] {
+  return db.query(`
+    SELECT r.id AS id, r.name AS name, r.type AS type,
+           r.head_revision_number AS head_revision_number,
+           lr.revision_number AS published_revision_number
+    FROM resources r
+    LEFT JOIN environments e ON e.stage = $stage
+    LEFT JOIN library_revisions lr ON lr.library_id = e.active_library_id AND lr.resource_id = r.id
+    WHERE r.deleted = 0 AND r.head_revision_number IS NOT NULL
+      AND (lr.revision_number IS NULL OR r.head_revision_number > lr.revision_number)
+      AND r.type IN ('rule','data_element')
+    ORDER BY r.type, r.name`).all({ $stage: stage }) as UnpublishedRow[];
 }

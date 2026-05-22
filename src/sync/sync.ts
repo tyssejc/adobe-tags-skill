@@ -2,6 +2,7 @@ import type { Database } from "bun:sqlite";
 import type { ReactorClient } from "../reactor/client.ts";
 import {
   upsertResource, linkRuleComponent, recordVariableSet, recordDataElementRef, recordTrigger, setMeta, resetDerivedTables,
+  recordLibrary, recordEnvironment, recordLibraryRevision,
 } from "../cache/repo.ts";
 import {
   extractVariables, extractDataElementRefs, buildSearchText, ANALYTICS_SET_VARS_DDI,
@@ -67,6 +68,27 @@ export async function syncProperty(db: Database, client: ReactorClient, property
       head_settings_json: a.settings ?? null, updated_at: a.updated_at ?? null,
       search_text: buildSearchText(a.name ?? "", a.settings ?? null),
     });
+  }
+
+  const environments = await client.listAll(`/properties/${propertyId}/environments`);
+  for (const e of environments) {
+    const a = e.attributes as any;
+    const activeLib = e.relationships?.library?.data && !Array.isArray(e.relationships.library.data)
+      ? e.relationships.library.data.id : null;
+    recordEnvironment(db, { id: e.id, name: a.name ?? "", stage: a.stage ?? "", active_library_id: activeLib });
+  }
+
+  const libraries = await client.listAll(`/properties/${propertyId}/libraries`);
+  for (const lib of libraries) {
+    const a = lib.attributes as any;
+    const envId = lib.relationships?.environment?.data && !Array.isArray(lib.relationships.environment.data)
+      ? lib.relationships.environment.data.id : null;
+    recordLibrary(db, { id: lib.id, name: a.name ?? "", state: a.state ?? "", built_at: a.built_at ?? null, environment_id: envId });
+    const revs = await client.listAll(`/libraries/${lib.id}/revisions`);
+    for (const rev of revs) {
+      const ra = rev.attributes as any;
+      recordLibraryRevision(db, lib.id, rev.id, ra.revision_number ?? 0);
+    }
   }
 
   setMeta(db, "last_synced_at", new Date().toISOString());

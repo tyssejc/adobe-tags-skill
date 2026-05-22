@@ -4,7 +4,7 @@ import { openDbAt } from "./db.ts";
 import {
   upsertResource, linkRuleComponent, recordVariableSet, recordTrigger,
   findRulesSettingVariable, listRules, refsToDataElement, triggerHistogram, grepCode, setMeta, getMeta,
-  countByType, resetDerivedTables,
+  countByType, resetDerivedTables, recordLibrary, recordEnvironment, recordLibraryRevision, unpublishedResources,
 } from "./repo.ts";
 
 function db(): Database { return openDbAt(":memory:"); }
@@ -66,4 +66,21 @@ test("resetDerivedTables clears derived rows", () => {
   recordVariableSet(d, "rc1", "eVar1");
   resetDerivedTables(d);
   expect(triggerHistogram(d)).toEqual([]);
+});
+
+test("unpublishedResources lists head revisions ahead of production library", () => {
+  const d = db();
+  upsertResource(d, { id: "r1", type: "rule", name: "Cart", enabled: true, deleted: false, delegate_descriptor_id: null, head_revision_number: 5, head_settings_json: null, updated_at: "2026-01-01", search_text: "Cart" });
+  recordEnvironment(d, { id: "env-prod", name: "Production", stage: "production", active_library_id: "lib1" });
+  recordLibrary(d, { id: "lib1", name: "Main", state: "published", built_at: "2026-01-01", environment_id: "env-prod" });
+  recordLibraryRevision(d, "lib1", "r1", 3);
+  const rows = unpublishedResources(d, "production");
+  expect(rows).toEqual([{ id: "r1", name: "Cart", type: "rule", head_revision_number: 5, published_revision_number: 3 }]);
+});
+
+test("resetDerivedTables clears library_revisions", () => {
+  const d = db();
+  recordLibraryRevision(d, "lib1", "r1", 3);
+  resetDerivedTables(d);
+  expect(d.query("SELECT COUNT(*) AS n FROM library_revisions").get()).toEqual({ n: 0 });
 });
