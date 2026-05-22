@@ -49,8 +49,4 @@ CREATE TABLE IF NOT EXISTS library_revisions (
 CREATE TABLE IF NOT EXISTS environments (
   id TEXT PRIMARY KEY, name TEXT, stage TEXT, active_library_id TEXT
 );
-
-CREATE VIRTUAL TABLE IF NOT EXISTS resource_fts USING fts5(
-  id UNINDEXED, name, search_text, content=''
-);
 `;

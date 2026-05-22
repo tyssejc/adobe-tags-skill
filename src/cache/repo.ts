@@ -24,8 +24,6 @@ export function upsertResource(db: Database, r: ResourceRow): void {
     $ddi: r.delegate_descriptor_id, $rev: r.head_revision_number, $settings: r.head_settings_json,
     $updated: r.updated_at, $search: r.search_text,
   });
-  db.query("DELETE FROM resource_fts WHERE id = ?").run(r.id);
-  db.query("INSERT INTO resource_fts (id, name, search_text) VALUES (?, ?, ?)").run(r.id, r.name, r.search_text);
 }
 
 export function linkRuleComponent(db: Database, ruleId: string, rcId: string): void {
