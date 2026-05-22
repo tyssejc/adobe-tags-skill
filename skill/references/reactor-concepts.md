@@ -14,6 +14,6 @@
 ## delegate_descriptor_id taxonomy (confirm against live data — see smoke test)
 - Triggers: `core::events::dom-ready`, `core::events::window-loaded`, `core::events::direct-call`, `core::events::data-element-change`, etc.
 - Adobe Analytics set-variables action: `adobe-analytics::actions::set-variables`
-- Custom code: `core::actions::custom-code`, `core::data-elements::custom-code`
+- Custom code: `core::actions::custom-code`, `core::conditions::custom-code`, `core::data-elements::custom-code`
 
 (Update this list with the actual IDs printed by `scripts/smoke.ts`.)
