@@ -84,6 +84,7 @@ export async function syncProperty(db: Database, client: ReactorClient, property
     const envId = lib.relationships?.environment?.data && !Array.isArray(lib.relationships.environment.data)
       ? lib.relationships.environment.data.id : null;
     recordLibrary(db, { id: lib.id, name: a.name ?? "", state: a.state ?? "", built_at: a.built_at ?? null, environment_id: envId });
+    // N+1: one revisions call per library; fine at MVP scale, parallelize if it gets slow.
     const revs = await client.listAll(`/libraries/${lib.id}/revisions`);
     for (const rev of revs) {
       const ra = rev.attributes as any;

@@ -124,22 +124,25 @@ export function recordEnvironment(db: Database, env: { id: string; name: string;
 }
 
 export function recordLibraryRevision(db: Database, libraryId: string, resourceId: string, revisionNumber: number): void {
-  db.query("INSERT INTO library_revisions (library_id, resource_id, revision_number) VALUES (?, ?, ?)")
+  db.query("INSERT OR REPLACE INTO library_revisions (library_id, resource_id, revision_number) VALUES (?, ?, ?)")
     .run(libraryId, resourceId, revisionNumber);
 }
 
 export interface UnpublishedRow { id: string; name: string; type: string; head_revision_number: number; published_revision_number: number | null; }
 
 export function unpublishedResources(db: Database, stage: string): UnpublishedRow[] {
+  const env = db.query("SELECT active_library_id FROM environments WHERE stage = ?").get(stage) as { active_library_id: string | null } | null;
+  if (!env) {
+    throw new Error(`No '${stage}' environment found in the cache. Check the stage (development/staging/production) and that the property has been synced.`);
+  }
   return db.query(`
     SELECT r.id AS id, r.name AS name, r.type AS type,
            r.head_revision_number AS head_revision_number,
            lr.revision_number AS published_revision_number
     FROM resources r
-    LEFT JOIN environments e ON e.stage = $stage
-    LEFT JOIN library_revisions lr ON lr.library_id = e.active_library_id AND lr.resource_id = r.id
+    LEFT JOIN library_revisions lr ON lr.library_id = $lib AND lr.resource_id = r.id
     WHERE r.deleted = 0 AND r.head_revision_number IS NOT NULL
       AND (lr.revision_number IS NULL OR r.head_revision_number > lr.revision_number)
       AND r.type IN ('rule','data_element')
-    ORDER BY r.type, r.name`).all({ $stage: stage }) as UnpublishedRow[];
+    ORDER BY r.type, r.name`).all({ $lib: env.active_library_id }) as UnpublishedRow[];
 }

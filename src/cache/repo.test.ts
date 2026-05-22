@@ -78,6 +78,11 @@ test("unpublishedResources lists head revisions ahead of production library", ()
   expect(rows).toEqual([{ id: "r1", name: "Cart", type: "rule", head_revision_number: 5, published_revision_number: 3 }]);
 });
 
+test("unpublishedResources throws when the stage has no environment", () => {
+  const d = db();
+  expect(() => unpublishedResources(d, "production")).toThrow(/production/);
+});
+
 test("resetDerivedTables clears library_revisions", () => {
   const d = db();
   recordLibraryRevision(d, "lib1", "r1", 3);

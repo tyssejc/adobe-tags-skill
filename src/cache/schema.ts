@@ -44,7 +44,8 @@ CREATE TABLE IF NOT EXISTS libraries (
   id TEXT PRIMARY KEY, name TEXT, state TEXT, built_at TEXT, environment_id TEXT
 );
 CREATE TABLE IF NOT EXISTS library_revisions (
-  library_id TEXT NOT NULL, resource_id TEXT NOT NULL, revision_number INTEGER
+  library_id TEXT NOT NULL, resource_id TEXT NOT NULL, revision_number INTEGER,
+  PRIMARY KEY (library_id, resource_id)
 );
 CREATE TABLE IF NOT EXISTS environments (
   id TEXT PRIMARY KEY, name TEXT, stage TEXT, active_library_id TEXT
