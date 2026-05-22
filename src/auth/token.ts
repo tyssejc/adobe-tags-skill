@@ -58,7 +58,7 @@ export async function getAccessToken(orgName: string, org: OrgConfig, fetchFn = 
   if (!res.ok) {
     throw new Error(`Token exchange failed (${res.status}): ${await res.text()}`);
   }
-  const tok = parseTokenResponse(await res.json());
+  const tok = parseTokenResponse((await res.json()) as { access_token: string; expires_in: number });
   await writeCache(orgName, tok);
   return tok.access_token;
 }

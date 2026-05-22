@@ -15,7 +15,7 @@ property_id = "PR123"
 
 test("parseConfig substitutes ${env:VAR}", () => {
   const cfg = parseConfig(TOML, { ACME_SECRET: "shh" });
-  expect(cfg.orgs.acme.client_secret).toBe("shh");
+  expect(cfg.orgs.acme!.client_secret).toBe("shh");
 });
 
 test("parseConfig throws on missing env var", () => {
