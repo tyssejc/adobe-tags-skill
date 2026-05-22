@@ -85,8 +85,10 @@ export function triggerHistogram(db: Database): { event_delegate_id: string; cou
 }
 
 export function grepCode(db: Database, pattern: string): { id: string; name: string }[] {
+  const escaped = pattern.replace(/[\\%_]/g, "\\$&");
   return db.query(`SELECT id, name FROM resources
-    WHERE (search_text LIKE $q OR name LIKE $q) AND deleted = 0 ORDER BY name`).all({ $q: `%${pattern}%` }) as { id: string; name: string }[];
+    WHERE (search_text LIKE $q ESCAPE '\\' OR name LIKE $q ESCAPE '\\') AND deleted = 0 ORDER BY name`)
+    .all({ $q: `%${escaped}%` }) as { id: string; name: string }[];
 }
 
 export function setMeta(db: Database, key: string, value: string): void {
@@ -101,4 +103,11 @@ export function getMeta(db: Database, key: string): string | null {
 export function countByType(db: Database): Record<string, number> {
   const rows = db.query("SELECT type, COUNT(*) AS n FROM resources WHERE deleted = 0 GROUP BY type").all() as { type: string; n: number }[];
   return Object.fromEntries(rows.map((r) => [r.type, r.n]));
+}
+
+export function resetDerivedTables(db: Database): void {
+  db.query("DELETE FROM variable_sets").run();
+  db.query("DELETE FROM rule_triggers").run();
+  db.query("DELETE FROM data_element_refs").run();
+  db.query("DELETE FROM rule_components_ix").run();
 }
