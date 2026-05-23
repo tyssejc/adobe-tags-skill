@@ -22,14 +22,36 @@ const rules = await client.listAll(`/properties/${rp.propertyId}/rules`);
 console.log(`rules: ${rules.length}`);
 if (rules[0]) dump("sample rule (note .id format and revision_number)", { id: rules[0].id, type: rules[0].type, attributes: rules[0].attributes });
 
-const components = await client.listAll(`/properties/${rp.propertyId}/rule_components`);
-const ids = new Set(components.map((c) => (c.attributes as any).delegate_descriptor_id));
-console.log("\nrule_component delegate_descriptor_ids seen:");
-for (const id of [...ids].sort()) console.log("  " + id);
+// Rule components hang off rules, not properties (per Reactor — verified 2026-05).
+// Sample components across the first few rules to see the DDI taxonomy and a set-variables shape.
+console.log("\n--- sampling rule_components across first 5 rules ---");
+const ddis = new Set<string>();
+let setVarsSettings: string | null = null;
+for (const r of rules.slice(0, 5)) {
+  const cs = await client.listAll(`/rules/${r.id}/rule_components`);
+  for (const c of cs) {
+    const a = c.attributes as any;
+    if (a.delegate_descriptor_id) ddis.add(a.delegate_descriptor_id);
+    if (!setVarsSettings && String(a.delegate_descriptor_id ?? "").includes("set-variables")) {
+      setVarsSettings = a.settings ?? null;
+    }
+  }
+}
+console.log("rule_component delegate_descriptor_ids seen:");
+for (const id of [...ddis].sort()) console.log("  " + id);
+if (setVarsSettings) dump("sample set-variables settings (verify eVars/events/props shape)", setVarsSettings);
+else console.log("(no set-variables action found in first 5 rules)");
 
-// Verify the set-variables settings shape (drives extractVariables).
-const setVars = components.find((c) => String((c.attributes as any).delegate_descriptor_id).includes("set-variables"));
-if (setVars) dump("sample set-variables settings (verify eVars/events/props shape)", (setVars.attributes as any).settings);
+// Confirm the other property-scoped endpoints exist.
+console.log("\n--- probing other property-scoped endpoints ---");
+for (const sub of ["data_elements", "extensions", "libraries", "environments"]) {
+  try {
+    const items = await client.listAll(`/properties/${rp.propertyId}/${sub}`);
+    console.log(`/properties/{id}/${sub}: OK, ${items.length} items`);
+  } catch (e) {
+    console.log(`/properties/{id}/${sub}: FAILED — ${e instanceof Error ? e.message.split("\n")[0] : String(e)}`);
+  }
+}
 
 // CRITICAL verification: how /libraries/{id}/revisions maps to base resource ids.
 // The unpublished query joins library_revisions.resource_id = resources.id (head id).

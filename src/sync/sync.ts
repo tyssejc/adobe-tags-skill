@@ -24,27 +24,27 @@ export async function syncProperty(db: Database, client: ReactorClient, property
     });
   }
 
-  const components = await client.listAll(`/properties/${propertyId}/rule_components`);
-  for (const c of components) {
-    const a = c.attributes as any;
-    const ddi: string = a.delegate_descriptor_id ?? "";
-    const settings: string | null = a.settings ?? null;
-    upsertResource(db, {
-      id: c.id, type: "rule_component", name: a.name ?? "", enabled: true, deleted: false,
-      delegate_descriptor_id: ddi, head_revision_number: a.revision_number ?? null,
-      head_settings_json: settings, updated_at: a.updated_at ?? null,
-      search_text: buildSearchText(a.name ?? "", settings),
-    });
-    const ruleId = c.relationships?.rule?.data && !Array.isArray(c.relationships.rule.data)
-      ? c.relationships.rule.data.id : undefined;
-    if (ruleId) {
-      linkRuleComponent(db, ruleId, c.id);
-      if (ddi.includes("::events::")) recordTrigger(db, ruleId, ddi);
+  // Rule components hang off rules, not properties. N+1 by design — Reactor has no
+  // property-wide rule_components endpoint.
+  for (const r of rules) {
+    const components = await client.listAll(`/rules/${r.id}/rule_components`);
+    for (const c of components) {
+      const a = c.attributes as any;
+      const ddi: string = a.delegate_descriptor_id ?? "";
+      const settings: string | null = a.settings ?? null;
+      upsertResource(db, {
+        id: c.id, type: "rule_component", name: a.name ?? "", enabled: true, deleted: false,
+        delegate_descriptor_id: ddi, head_revision_number: a.revision_number ?? null,
+        head_settings_json: settings, updated_at: a.updated_at ?? null,
+        search_text: buildSearchText(a.name ?? "", settings),
+      });
+      linkRuleComponent(db, r.id, c.id);
+      if (ddi.includes("::events::")) recordTrigger(db, r.id, ddi);
+      if (ddi === ANALYTICS_SET_VARS_DDI) {
+        for (const v of extractVariables(settings)) recordVariableSet(db, c.id, v);
+      }
+      for (const ref of extractDataElementRefs(settings)) recordDataElementRef(db, c.id, ref);
     }
-    if (ddi === ANALYTICS_SET_VARS_DDI) {
-      for (const v of extractVariables(settings)) recordVariableSet(db, c.id, v);
-    }
-    for (const ref of extractDataElementRefs(settings)) recordDataElementRef(db, c.id, ref);
   }
 
   const dataElements = await client.listAll(`/properties/${propertyId}/data_elements`);
