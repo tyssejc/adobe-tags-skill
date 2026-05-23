@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS rule_components_ix (
 );
 
 CREATE TABLE IF NOT EXISTS variable_sets (
-  rule_component_id TEXT NOT NULL,
+  source_id TEXT NOT NULL,
   variable TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_variable_sets_var ON variable_sets(variable);

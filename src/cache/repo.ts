@@ -32,8 +32,8 @@ export function linkRuleComponent(db: Database, ruleId: string, rcId: string): v
   db.query("INSERT OR IGNORE INTO rule_components_ix (rule_id, rule_component_id) VALUES (?, ?)").run(ruleId, rcId);
 }
 
-export function recordVariableSet(db: Database, rcId: string, variable: string): void {
-  db.query("INSERT INTO variable_sets (rule_component_id, variable) VALUES (?, ?)").run(rcId, variable);
+export function recordVariableSet(db: Database, sourceId: string, variable: string): void {
+  db.query("INSERT INTO variable_sets (source_id, variable) VALUES (?, ?)").run(sourceId, variable);
 }
 
 export function recordDataElementRef(db: Database, sourceId: string, name: string): void {
@@ -44,13 +44,20 @@ export function recordTrigger(db: Database, ruleId: string, eventDelegateId: str
   db.query("INSERT INTO rule_triggers (rule_id, event_delegate_id) VALUES (?, ?)").run(ruleId, eventDelegateId);
 }
 
-export function findRulesSettingVariable(db: Database, variable: string): { id: string; name: string }[] {
-  return db.query(`SELECT DISTINCT r.id AS id, r.name AS name
+export function findResourcesSettingVariable(db: Database, variable: string): { id: string; name: string; type: string }[] {
+  return db.query(`
+    SELECT DISTINCT r.id AS id, r.name AS name, 'rule' AS type
     FROM variable_sets vs
-    JOIN rule_components_ix ix ON ix.rule_component_id = vs.rule_component_id
+    JOIN rule_components_ix ix ON ix.rule_component_id = vs.source_id
     JOIN resources r ON r.id = ix.rule_id
-    WHERE vs.variable = ? AND r.deleted = 0
-    ORDER BY r.name`).all(variable) as { id: string; name: string }[];
+    WHERE vs.variable = $v AND r.deleted = 0
+    UNION ALL
+    SELECT DISTINCT r.id AS id, r.name AS name, 'extension' AS type
+    FROM variable_sets vs
+    JOIN resources r ON r.id = vs.source_id
+    WHERE vs.variable = $v AND r.type = 'extension' AND r.deleted = 0
+    ORDER BY type, name
+  `).all({ $v: variable }) as { id: string; name: string; type: string }[];
 }
 
 export interface ListRulesFilter { disabledOnly?: boolean; untouchedSince?: string; }

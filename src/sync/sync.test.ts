@@ -1,7 +1,7 @@
 import { test, expect } from "bun:test";
 import { openDbAt } from "../cache/db.ts";
 import { syncProperty } from "./sync.ts";
-import { findRulesSettingVariable, triggerHistogram, refsToDataElement, getMeta } from "../cache/repo.ts";
+import { findResourcesSettingVariable, triggerHistogram, refsToDataElement, getMeta } from "../cache/repo.ts";
 
 const fakeClient = {
   async listAll(path: string) {
@@ -26,7 +26,7 @@ const fakeClient = {
 test("syncProperty populates variables, triggers, refs, and meta", async () => {
   const db = openDbAt(":memory:");
   await syncProperty(db, fakeClient as any, "PR1", { full: true });
-  expect(findRulesSettingVariable(db, "eVar20")).toEqual([{ id: "r1", name: "Cart" }]);
+  expect(findResourcesSettingVariable(db, "eVar20")).toEqual([{ id: "r1", name: "Cart", type: "rule" }]);
   expect(triggerHistogram(db)).toEqual([{ event_delegate_id: "core::events::dom-ready", count: 1 }]);
   expect(refsToDataElement(db, "cartId").map((x) => x.id)).toContain("rc1");
   expect(getMeta(db, "last_synced_at")).not.toBeNull();
@@ -37,5 +37,5 @@ test("syncProperty is idempotent across repeated runs (no double-count)", async 
   await syncProperty(db, fakeClient as any, "PR1", { full: true });
   await syncProperty(db, fakeClient as any, "PR1", { full: true });
   expect(triggerHistogram(db)).toEqual([{ event_delegate_id: "core::events::dom-ready", count: 1 }]);
-  expect(findRulesSettingVariable(db, "eVar20")).toEqual([{ id: "r1", name: "Cart" }]);
+  expect(findResourcesSettingVariable(db, "eVar20")).toEqual([{ id: "r1", name: "Cart", type: "rule" }]);
 });

@@ -3,20 +3,27 @@ import { Database } from "bun:sqlite";
 import { openDbAt } from "./db.ts";
 import {
   upsertResource, linkRuleComponent, recordVariableSet, recordTrigger,
-  findRulesSettingVariable, listRules, refsToDataElement, triggerHistogram, grepCode, setMeta, getMeta,
+  findResourcesSettingVariable, listRules, refsToDataElement, triggerHistogram, grepCode, setMeta, getMeta,
   countByType, resetDerivedTables, recordLibrary, recordEnvironment, unpublishedResources,
 } from "./repo.ts";
 
 function db(): Database { return openDbAt(":memory:"); }
 
-test("findRulesSettingVariable joins component -> rule", () => {
+test("findResourcesSettingVariable joins component -> rule", () => {
   const d = db();
   upsertResource(d, { id: "r1", type: "rule", name: "Cart Add", enabled: true, deleted: false, dirty: false, delegate_descriptor_id: null, head_revision_number: 3, head_settings_json: null, updated_at: "2026-01-01", search_text: "Cart Add" });
   upsertResource(d, { id: "rc1", type: "rule_component", name: "Set Vars", enabled: true, deleted: false, dirty: false, delegate_descriptor_id: "adobe-analytics::actions::set-variables", head_revision_number: 3, head_settings_json: "{}", updated_at: "2026-01-01", search_text: "" });
   linkRuleComponent(d, "r1", "rc1");
   recordVariableSet(d, "rc1", "eVar20");
-  const rules = findRulesSettingVariable(d, "eVar20");
-  expect(rules).toEqual([{ id: "r1", name: "Cart Add" }]);
+  const rules = findResourcesSettingVariable(d, "eVar20");
+  expect(rules).toEqual([{ id: "r1", name: "Cart Add", type: "rule" }]);
+});
+
+test("findResourcesSettingVariable also returns extension sources", () => {
+  const d = db();
+  upsertResource(d, { id: "ext1", type: "extension", name: "Adobe Analytics", enabled: true, deleted: false, dirty: false, delegate_descriptor_id: "adobe-analytics", head_revision_number: null, head_settings_json: "{}", updated_at: "x", search_text: "" });
+  recordVariableSet(d, "ext1", "event71");
+  expect(findResourcesSettingVariable(d, "event71")).toEqual([{ id: "ext1", name: "Adobe Analytics", type: "extension" }]);
 });
 
 test("triggerHistogram counts events", () => {

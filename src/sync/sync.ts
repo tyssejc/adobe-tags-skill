@@ -5,7 +5,7 @@ import {
   recordLibrary, recordEnvironment,
 } from "../cache/repo.ts";
 import {
-  extractVariables, extractDataElementRefs, buildSearchText, ANALYTICS_SET_VARS_DDI,
+  extractVariables, extractDataElementRefs, buildSearchText,
 } from "./classify.ts";
 
 interface SyncOpts { full?: boolean; }
@@ -41,7 +41,7 @@ export async function syncProperty(db: Database, client: ReactorClient, property
       });
       linkRuleComponent(db, r.id, c.id);
       if (ddi.includes("::events::")) recordTrigger(db, r.id, ddi);
-      if (ddi === ANALYTICS_SET_VARS_DDI) {
+      if (ddi.includes("::actions::")) {
         for (const v of extractVariables(settings)) recordVariableSet(db, c.id, v);
       }
       for (const ref of extractDataElementRefs(settings)) recordDataElementRef(db, c.id, ref);
@@ -71,6 +71,7 @@ export async function syncProperty(db: Database, client: ReactorClient, property
       head_settings_json: a.settings ?? null, updated_at: a.updated_at ?? null,
       search_text: buildSearchText(a.name ?? "", a.settings ?? null),
     });
+    for (const v of extractVariables(a.settings ?? null)) recordVariableSet(db, e.id, v);
   }
 
   const environments = await client.listAll(`/properties/${propertyId}/environments`);

@@ -11,23 +11,12 @@ function safeParse(settings: string | null): any {
 const ANALYTICS_VAR_RE = /\b(eVar\d+|event\d+|prop\d+)\b/g;
 
 export function extractVariables(settings: string | null): string[] {
-  const obj = safeParse(settings);
-  if (!obj) return [];
+  if (!settings) return [];
   const out = new Set<string>();
-  const tp = obj.trackerProperties ?? obj;
-  for (const group of ["eVars", "events", "props"]) {
-    const arr = tp?.[group];
-    if (Array.isArray(arr)) {
-      for (const item of arr) if (item?.name) out.add(String(item.name));
-    }
-  }
-  const code = obj.customSetup?.source;
-  if (typeof code === "string") {
-    let m: RegExpExecArray | null;
-    ANALYTICS_VAR_RE.lastIndex = 0;
-    while ((m = ANALYTICS_VAR_RE.exec(code)) !== null) {
-      if (m[1]) out.add(m[1]);
-    }
+  let m: RegExpExecArray | null;
+  ANALYTICS_VAR_RE.lastIndex = 0;
+  while ((m = ANALYTICS_VAR_RE.exec(settings)) !== null) {
+    if (m[1]) out.add(m[1]);
   }
   return [...out];
 }

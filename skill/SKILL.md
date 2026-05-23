@@ -31,6 +31,7 @@ Use the `cadmium` CLI to answer read-only questions about an Adobe Tags property
 
 - All commands accept `--json`; always pass it and parse the JSON.
 - Lead your answer with the conclusion (e.g. "3 rules set eVar20: …"), not the raw list.
+- `sets-variable` returns both rules (variables set in any action component) and extensions (variables set in extension config, e.g. Adobe Analytics `doPlugins`). The `type` column distinguishes them.
 - `unpublished` lists resources whose head has been edited since the last library build (the `dirty` flag) — these are forgotten in-progress edits that aren't yet deployable.
 - `unpublished` rows mean a resource's head revision is ahead of what's live — flag these as risk, since they may be forgotten in-progress edits.
 - See `references/reactor-concepts.md` for how revisions, libraries, and environments relate, and for the `delegate_descriptor_id` taxonomy.
