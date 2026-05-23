@@ -56,6 +56,11 @@ export function findResourcesSettingVariable(db: Database, variable: string): { 
     FROM variable_sets vs
     JOIN resources r ON r.id = vs.source_id
     WHERE vs.variable = $v AND r.type = 'extension' AND r.deleted = 0
+    UNION ALL
+    SELECT DISTINCT r.id AS id, r.name AS name, 'data_element' AS type
+    FROM variable_sets vs
+    JOIN resources r ON r.id = vs.source_id
+    WHERE vs.variable = $v AND r.type = 'data_element' AND r.deleted = 0
     ORDER BY type, name
   `).all({ $v: variable }) as { id: string; name: string; type: string }[];
 }

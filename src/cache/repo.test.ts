@@ -26,6 +26,13 @@ test("findResourcesSettingVariable also returns extension sources", () => {
   expect(findResourcesSettingVariable(d, "event71")).toEqual([{ id: "ext1", name: "Adobe Analytics", type: "extension" }]);
 });
 
+test("findResourcesSettingVariable also returns data_element sources", () => {
+  const d = db();
+  upsertResource(d, { id: "de1", type: "data_element", name: "funcLib_buildPS", enabled: true, deleted: false, dirty: false, delegate_descriptor_id: "core::data-elements::custom-code", head_revision_number: null, head_settings_json: "{}", updated_at: "x", search_text: "" });
+  recordVariableSet(d, "de1", "event74");
+  expect(findResourcesSettingVariable(d, "event74")).toEqual([{ id: "de1", name: "funcLib_buildPS", type: "data_element" }]);
+});
+
 test("triggerHistogram counts events", () => {
   const d = db();
   recordTrigger(d, "r1", "core::events::dom-ready");
