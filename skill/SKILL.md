@@ -24,12 +24,13 @@ Use the `cadmium` CLI to answer read-only questions about an Adobe Tags property
 | Find custom code touching `digitalData.foo` | `cadmium grep <alias> 'digitalData.foo' --json` |
 | List rules / disabled rules / stale rules | `cadmium ls rules <alias> [--disabled] [--untouched-since 2025-01-01] --json` |
 | List data elements / unused ones | `cadmium ls data-elements <alias> [--unused] --json` |
-| Anything unpublished in production? | `cadmium unpublished <alias> --env production --json` |
+| Any resources with unpublished changes (dirty)? | `cadmium unpublished <alias> --json` |
 | Summarize the property | `cadmium overview <alias> --json` |
 
 ## Interpreting results
 
 - All commands accept `--json`; always pass it and parse the JSON.
 - Lead your answer with the conclusion (e.g. "3 rules set eVar20: …"), not the raw list.
+- `unpublished` lists resources whose head has been edited since the last library build (the `dirty` flag) — these are forgotten in-progress edits that aren't yet deployable.
 - `unpublished` rows mean a resource's head revision is ahead of what's live — flag these as risk, since they may be forgotten in-progress edits.
 - See `references/reactor-concepts.md` for how revisions, libraries, and environments relate, and for the `delegate_descriptor_id` taxonomy.

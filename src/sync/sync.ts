@@ -2,7 +2,7 @@ import type { Database } from "bun:sqlite";
 import type { ReactorClient } from "../reactor/client.ts";
 import {
   upsertResource, linkRuleComponent, recordVariableSet, recordDataElementRef, recordTrigger, setMeta, resetDerivedTables,
-  recordLibrary, recordEnvironment, recordLibraryRevision,
+  recordLibrary, recordEnvironment,
 } from "../cache/repo.ts";
 import {
   extractVariables, extractDataElementRefs, buildSearchText, ANALYTICS_SET_VARS_DDI,
@@ -19,6 +19,7 @@ export async function syncProperty(db: Database, client: ReactorClient, property
     const a = r.attributes as any;
     upsertResource(db, {
       id: r.id, type: "rule", name: a.name ?? "", enabled: !!a.enabled, deleted: !!a.deleted_at,
+      dirty: !!a.dirty,
       delegate_descriptor_id: null, head_revision_number: a.revision_number ?? null,
       head_settings_json: null, updated_at: a.updated_at ?? null, search_text: a.name ?? "",
     });
@@ -33,7 +34,7 @@ export async function syncProperty(db: Database, client: ReactorClient, property
       const ddi: string = a.delegate_descriptor_id ?? "";
       const settings: string | null = a.settings ?? null;
       upsertResource(db, {
-        id: c.id, type: "rule_component", name: a.name ?? "", enabled: true, deleted: false,
+        id: c.id, type: "rule_component", name: a.name ?? "", enabled: true, deleted: false, dirty: false,
         delegate_descriptor_id: ddi, head_revision_number: a.revision_number ?? null,
         head_settings_json: settings, updated_at: a.updated_at ?? null,
         search_text: buildSearchText(a.name ?? "", settings),
@@ -53,6 +54,7 @@ export async function syncProperty(db: Database, client: ReactorClient, property
     const settings: string | null = a.settings ?? null;
     upsertResource(db, {
       id: d.id, type: "data_element", name: a.name ?? "", enabled: !!a.enabled, deleted: !!a.deleted_at,
+      dirty: !!a.dirty,
       delegate_descriptor_id: a.delegate_descriptor_id ?? null, head_revision_number: a.revision_number ?? null,
       head_settings_json: settings, updated_at: a.updated_at ?? null, search_text: buildSearchText(a.name ?? "", settings),
     });
@@ -64,6 +66,7 @@ export async function syncProperty(db: Database, client: ReactorClient, property
     const a = e.attributes as any;
     upsertResource(db, {
       id: e.id, type: "extension", name: a.name ?? "", enabled: !!a.enabled, deleted: !!a.deleted_at,
+      dirty: !!a.dirty,
       delegate_descriptor_id: a.delegate_descriptor_id ?? null, head_revision_number: null,
       head_settings_json: a.settings ?? null, updated_at: a.updated_at ?? null,
       search_text: buildSearchText(a.name ?? "", a.settings ?? null),
@@ -84,12 +87,6 @@ export async function syncProperty(db: Database, client: ReactorClient, property
     const envId = lib.relationships?.environment?.data && !Array.isArray(lib.relationships.environment.data)
       ? lib.relationships.environment.data.id : null;
     recordLibrary(db, { id: lib.id, name: a.name ?? "", state: a.state ?? "", built_at: a.built_at ?? null, environment_id: envId });
-    // N+1: one revisions call per library; fine at MVP scale, parallelize if it gets slow.
-    const revs = await client.listAll(`/libraries/${lib.id}/revisions`);
-    for (const rev of revs) {
-      const ra = rev.attributes as any;
-      recordLibraryRevision(db, lib.id, rev.id, ra.revision_number ?? 0);
-    }
   }
 
   setMeta(db, "last_synced_at", new Date().toISOString());

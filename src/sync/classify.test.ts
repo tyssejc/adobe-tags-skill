@@ -19,3 +19,11 @@ test("extractCode returns source from custom-code settings", () => {
 test("extractVariables tolerates malformed JSON", () => {
   expect(extractVariables("not json")).toEqual([]);
 });
+
+test("extractVariables also scans customSetup.source for s.eVarN/eventN/propN", () => {
+  const settings = JSON.stringify({
+    customSetup: { source: "s.eVar20 = 'x'; s.events = 'event5,event6'; s.prop3 = 1;" },
+    trackerProperties: { events: [{ name: "scAdd" }] },
+  });
+  expect(extractVariables(settings).sort()).toEqual(["eVar20", "event5", "event6", "prop3", "scAdd"]);
+});
