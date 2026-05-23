@@ -53,19 +53,6 @@ for (const sub of ["data_elements", "extensions", "libraries", "environments"]) 
   }
 }
 
-// CRITICAL verification: how /libraries/{id}/revisions maps to base resource ids.
-// The unpublished query joins library_revisions.resource_id = resources.id (head id).
-// Confirm whether a revision object's .id equals the head resource id, or whether the
-// base resource id lives under relationships (e.g. relationships.rule / .data_element / .revision).
-const libraries = await client.listAll(`/properties/${rp.propertyId}/libraries`);
-console.log(`\nlibraries: ${libraries.length}`);
-const lib = libraries[0];
-if (lib) {
-  const revs = await client.listAll(`/libraries/${lib.id}/revisions`);
-  console.log(`/libraries/${lib.id}/revisions returned ${revs.length} objects`);
-  if (revs[0]) dump("sample library revision (compare .id vs head ids above; inspect relationships)", revs[0]);
-}
-
 const environments = await client.listAll(`/properties/${rp.propertyId}/environments`);
 console.log("\nenvironments (stage -> active library relationship):");
 for (const e of environments) {
