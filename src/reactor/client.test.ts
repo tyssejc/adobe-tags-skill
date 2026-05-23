@@ -31,5 +31,5 @@ test("sends required Adobe headers", async () => {
   expect(seen.Authorization).toBe("Bearer tk");
   expect(seen["x-api-key"]).toBe("cid");
   expect(seen["x-gw-ims-org-id"]).toBe("ABC@AdobeOrg");
-  expect(seen.Accept).toBe("application/vnd.api+json");
+  expect(seen.Accept).toBe("application/vnd.api+json;revision=1");
 });

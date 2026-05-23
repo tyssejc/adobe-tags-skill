@@ -12,7 +12,7 @@ export class ReactorClient {
       Authorization: `Bearer ${this.auth.token}`,
       "x-api-key": this.auth.clientId,
       "x-gw-ims-org-id": this.auth.imsOrg,
-      Accept: "application/vnd.api+json",
+      Accept: "application/vnd.api+json;revision=1",
     };
   }
 
