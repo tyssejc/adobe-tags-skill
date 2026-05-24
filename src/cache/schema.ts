@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 export const DDL = `
 CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
@@ -42,7 +42,17 @@ CREATE TABLE IF NOT EXISTS rule_triggers (
 );
 
 CREATE TABLE IF NOT EXISTS libraries (
-  id TEXT PRIMARY KEY, name TEXT, state TEXT, built_at TEXT, environment_id TEXT
+  id TEXT PRIMARY KEY,
+  name TEXT,
+  state TEXT,
+  -- Reactor library timestamps: created_at (made), updated_at (last edit), published_at (live).
+  -- The legacy column built_at never existed on the API and was always null.
+  created_at TEXT,
+  updated_at TEXT,
+  published_at TEXT,
+  created_by_email TEXT,
+  build_required INTEGER,
+  environment_id TEXT
 );
 CREATE TABLE IF NOT EXISTS environments (
   id TEXT PRIMARY KEY, name TEXT, stage TEXT, active_library_id TEXT

@@ -90,7 +90,17 @@ export async function syncProperty(db: Database, client: ReactorClient, property
     const a = lib.attributes as any;
     const envId = lib.relationships?.environment?.data && !Array.isArray(lib.relationships.environment.data)
       ? lib.relationships.environment.data.id : null;
-    recordLibrary(db, { id: lib.id, name: a.name ?? "", state: a.state ?? "", built_at: a.built_at ?? null, environment_id: envId });
+    recordLibrary(db, {
+      id: lib.id,
+      name: a.name ?? "",
+      state: a.state ?? "",
+      created_at: a.created_at ?? null,
+      updated_at: a.updated_at ?? null,
+      published_at: a.published_at ?? null,
+      created_by_email: a.created_by_email ?? null,
+      build_required: Boolean(a.build_required),
+      environment_id: envId,
+    });
   }
 
   setMeta(db, "last_synced_at", new Date().toISOString());

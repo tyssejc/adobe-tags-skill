@@ -126,9 +126,29 @@ export function resetDerivedTables(db: Database): void {
   db.query("DELETE FROM rule_components_ix").run();
 }
 
-export function recordLibrary(db: Database, lib: { id: string; name: string; state: string; built_at: string | null; environment_id: string | null }): void {
-  db.query("INSERT OR REPLACE INTO libraries (id, name, state, built_at, environment_id) VALUES (?, ?, ?, ?, ?)")
-    .run(lib.id, lib.name, lib.state, lib.built_at, lib.environment_id);
+export interface LibraryRow {
+  id: string;
+  name: string;
+  state: string;
+  created_at: string | null;
+  updated_at: string | null;
+  published_at: string | null;
+  created_by_email: string | null;
+  build_required: boolean;
+  environment_id: string | null;
+}
+
+export function recordLibrary(db: Database, lib: LibraryRow): void {
+  db.query(
+    "INSERT OR REPLACE INTO libraries " +
+    "(id, name, state, created_at, updated_at, published_at, created_by_email, build_required, environment_id) " +
+    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+  ).run(
+    lib.id, lib.name, lib.state,
+    lib.created_at, lib.updated_at, lib.published_at,
+    lib.created_by_email, lib.build_required ? 1 : 0,
+    lib.environment_id,
+  );
 }
 
 export function recordEnvironment(db: Database, env: { id: string; name: string; stage: string; active_library_id: string | null }): void {
