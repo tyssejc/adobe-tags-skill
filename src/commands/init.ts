@@ -2,8 +2,7 @@ import { configPath } from "../paths.ts";
 import { parseConfig, resolveProperty } from "../config/config.ts";
 import { getAccessToken } from "../auth/token.ts";
 import { ReactorClient } from "../reactor/client.ts";
-import { mkdir } from "node:fs/promises";
-import { dirname } from "node:path";
+import { ensureDirFor } from "../util/fs.ts";
 import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import type { Cmd } from "../command.ts";
@@ -46,7 +45,7 @@ property_id = "${propertyId}"
     await client.get(`/properties/${propertyId}`);
 
     const path = configPath();
-    await mkdir(dirname(path), { recursive: true });
+    await ensureDirFor(path);
     await Bun.write(path, toml);
     await Bun.$`chmod 600 ${path}`.quiet();
     console.log(`\nValidated and wrote ${path}. Try: cadmium sync ${propAlias}`);

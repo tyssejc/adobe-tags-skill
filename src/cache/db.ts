@@ -1,12 +1,11 @@
 import { Database } from "bun:sqlite";
-import { mkdir } from "node:fs/promises";
-import { dirname } from "node:path";
 import { cacheDbPath } from "../paths.ts";
+import { ensureDirFor } from "../util/fs.ts";
 import { DDL, SCHEMA_VERSION } from "./schema.ts";
 
 export async function openDb(alias: string): Promise<Database> {
   const path = cacheDbPath(alias);
-  await mkdir(dirname(path), { recursive: true });
+  await ensureDirFor(path);
   return openDbAt(path);
 }
 

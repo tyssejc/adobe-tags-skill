@@ -1,7 +1,6 @@
 import type { OrgConfig } from "../config/config.ts";
 import { tokenCachePath } from "../paths.ts";
-import { mkdir } from "node:fs/promises";
-import { dirname } from "node:path";
+import { ensureDirFor } from "../util/fs.ts";
 
 const IMS_TOKEN_URL = "https://ims-na1.adobelogin.com/ims/token/v3";
 const SKEW_MS = 5 * 60 * 1000;
@@ -40,7 +39,7 @@ async function readCache(org: string): Promise<CachedToken | null> {
 
 async function writeCache(org: string, tok: CachedToken): Promise<void> {
   const path = tokenCachePath(org);
-  await mkdir(dirname(path), { recursive: true });
+  await ensureDirFor(path);
   await Bun.write(path, JSON.stringify(tok));
   await Bun.$`chmod 600 ${path}`.quiet();
 }
