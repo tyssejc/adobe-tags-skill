@@ -4,6 +4,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { openDbAt } from "./db.ts";
+import { SCHEMA_VERSION } from "./schema.ts";
 
 test("openDbAt drops and rebuilds when stored schema_version doesn't match", () => {
   const dir = mkdtempSync(join(tmpdir(), "cadmium-db-test-"));
@@ -21,7 +22,7 @@ test("openDbAt drops and rebuilds when stored schema_version doesn't match", () 
     expect(names).toContain("source_id");
     expect(names).not.toContain("rule_component_id");
     const ver = db.query("SELECT value FROM meta WHERE key = 'schema_version'").get() as { value: string } | null;
-    expect(ver?.value).toBe("2");
+    expect(ver?.value).toBe(String(SCHEMA_VERSION));
     db.close();
   } finally {
     rmSync(dir, { recursive: true, force: true });

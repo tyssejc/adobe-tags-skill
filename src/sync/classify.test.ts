@@ -14,9 +14,35 @@ test("extractDataElementRefs finds %name% tokens", () => {
   expect(extractDataElementRefs(settings).sort()).toEqual(["cartId", "userType"]);
 });
 
+test("extractDataElementRefs finds _satellite.getVar('name') calls in custom code", () => {
+  const settings = JSON.stringify({
+    source: "var a = _satellite.getVar('orderTotal');\n" +
+            "var b = _satellite.getVar(\"orderTax\");\n" +
+            "var c = _satellite.getVar( 'with spaces' );\n" +
+            "var d = _satellite.getVar(dynamicName); // not statically resolvable",
+  });
+  expect(extractDataElementRefs(settings).sort()).toEqual(["orderTax", "orderTotal", "with spaces"]);
+});
+
+test("extractDataElementRefs combines %token% and getVar() references without duplicates", () => {
+  const settings = JSON.stringify({
+    source: "_satellite.getVar('cartId'); // also appears as %cartId% elsewhere",
+    value: "%cartId%-%userType%",
+  });
+  expect(extractDataElementRefs(settings).sort()).toEqual(["cartId", "userType"]);
+});
+
 test("extractCode returns source from custom-code settings", () => {
   const settings = JSON.stringify({ source: "window.x = 1;" });
   expect(extractCode(settings)).toBe("window.x = 1;");
+});
+
+test("extractCode returns customSetup.source from Analytics set-variables settings", () => {
+  const settings = JSON.stringify({
+    customSetup: { source: "s.eVar1 = _satellite.getVar('foo');" },
+    trackerProperties: { eVars: [] },
+  });
+  expect(extractCode(settings)).toBe("s.eVar1 = _satellite.getVar('foo');");
 });
 
 test("extractVariables tolerates null and malformed strings", () => {
