@@ -151,6 +151,39 @@ export function recordLibrary(db: Database, lib: LibraryRow): void {
   );
 }
 
+export interface LibraryListRow {
+  id: string;
+  name: string;
+  state: string;
+  created_at: string | null;
+  updated_at: string | null;
+  published_at: string | null;
+  created_by_email: string | null;
+  build_required: number;
+  environment_id: string | null;
+}
+
+export function listLibraries(
+  db: Database,
+  opts: { namePattern?: string; state?: string; publishedSince?: string } = {},
+): LibraryListRow[] {
+  let sql = "SELECT * FROM libraries WHERE 1=1";
+  const params: NamedParams = {};
+  if (opts.namePattern) {
+    // Case-insensitive substring; SQLite LIKE is case-insensitive for ASCII by default.
+    sql += " AND name LIKE $name";
+    params.$name = `%${opts.namePattern}%`;
+  }
+  if (opts.state) { sql += " AND state = $state"; params.$state = opts.state; }
+  if (opts.publishedSince) {
+    sql += " AND published_at IS NOT NULL AND published_at >= $since";
+    params.$since = opts.publishedSince;
+  }
+  // Published first (newest), drafts/unpublished sorted after by created_at desc.
+  sql += " ORDER BY (published_at IS NULL), published_at DESC, created_at DESC";
+  return db.query(sql).all(params) as LibraryListRow[];
+}
+
 export function recordEnvironment(db: Database, env: { id: string; name: string; stage: string; active_library_id: string | null }): void {
   db.query("INSERT OR REPLACE INTO environments (id, name, stage, active_library_id) VALUES (?, ?, ?, ?)")
     .run(env.id, env.name, env.stage, env.active_library_id);

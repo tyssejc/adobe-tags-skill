@@ -24,6 +24,7 @@ Use the `cadmium` CLI to answer read-only questions about an Adobe Tags property
 | Find custom code touching `digitalData.foo` | `cadmium grep <alias> 'digitalData.foo' --json` |
 | List rules / disabled rules / stale rules | `cadmium ls rules <alias> [--disabled] [--untouched-since 2025-01-01] --json` |
 | List data elements / unused ones | `cadmium ls data-elements <alias> [--unused] --json` |
+| Browse publish history / find a cleanup library | `cadmium ls libraries <alias> [--name 'Remove'] [--state published] [--published-since 2024-01-01] --json` |
 | Any resources with unpublished changes (dirty)? | `cadmium unpublished <alias> --json` |
 | Summarize the property | `cadmium overview <alias> --json` |
 
@@ -34,4 +35,5 @@ Use the `cadmium` CLI to answer read-only questions about an Adobe Tags property
 - `sets-variable` returns both rules (variables set in any action component) and extensions (variables set in extension config, e.g. Adobe Analytics `doPlugins`). The `type` column distinguishes them.
 - `unpublished` lists resources whose head has been edited since the last library build (the `dirty` flag) — these are forgotten in-progress edits that aren't yet deployable.
 - `unpublished` rows mean a resource's head revision is ahead of what's live — flag these as risk, since they may be forgotten in-progress edits.
+- `ls libraries` is sorted newest-published first, then unpublished/draft libraries (sorted by created_at). Useful when an orphaned data element looks deletable but you want to find the "Remove X" library that explains it.
 - See `references/reactor-concepts.md` for how revisions, libraries, and environments relate, and for the `delegate_descriptor_id` taxonomy.

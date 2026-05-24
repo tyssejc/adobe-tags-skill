@@ -34,9 +34,12 @@ export async function run(argv: string[]): Promise<number> {
       unused: { type: "boolean", default: false },
       "group-by-action": { type: "boolean", default: false },
       "untouched-since": { type: "string" },
+      "published-since": { type: "string" },
       type: { type: "string" },
       env: { type: "string", default: "production" },
       org: { type: "string" },
+      name: { type: "string" },
+      state: { type: "string" },
     },
   });
   return fn(positionals, values);

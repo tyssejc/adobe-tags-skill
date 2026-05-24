@@ -5,6 +5,7 @@ import {
   upsertResource, linkRuleComponent, recordVariableSet, recordTrigger,
   findResourcesSettingVariable, listRules, refsToDataElement, triggerHistogram, grepCode, setMeta, getMeta,
   countByType, resetDerivedTables, recordLibrary, recordEnvironment, unpublishedResources,
+  listLibraries,
 } from "./repo.ts";
 
 function db(): Database { return openDbAt(":memory:"); }
@@ -80,6 +81,33 @@ test("resetDerivedTables clears derived rows", () => {
   recordVariableSet(d, "rc1", "eVar1");
   resetDerivedTables(d);
   expect(triggerHistogram(d)).toEqual([]);
+});
+
+test("listLibraries sorts by published_at desc, filters by name and date", () => {
+  const d = db();
+  recordLibrary(d, { id: "LB1", name: "Remove Criteo and GA3", state: "published",
+    created_at: "2024-03-19", updated_at: "2024-04-12", published_at: "2024-04-12",
+    created_by_email: "bob@x.com", build_required: false, environment_id: null });
+  recordLibrary(d, { id: "LB2", name: "Add Pinterest tag", state: "published",
+    created_at: "2025-01-15", updated_at: "2025-01-16", published_at: "2025-01-16",
+    created_by_email: "alice@x.com", build_required: false, environment_id: null });
+  recordLibrary(d, { id: "LB3", name: "Remove Yotta trial", state: "draft",
+    created_at: "2026-03-01", updated_at: "2026-03-01", published_at: null,
+    created_by_email: "bob@x.com", build_required: true, environment_id: null });
+
+  // Default sort: published first (newest), drafts last.
+  expect(listLibraries(d).map((l) => l.id)).toEqual(["LB2", "LB1", "LB3"]);
+
+  // Name filter is a case-insensitive substring match.
+  expect(listLibraries(d, { namePattern: "remove" }).map((l) => l.id))
+    .toEqual(["LB1", "LB3"]);
+
+  // State filter.
+  expect(listLibraries(d, { state: "draft" }).map((l) => l.id)).toEqual(["LB3"]);
+
+  // publishedSince keeps only libraries with published_at >= the given date.
+  expect(listLibraries(d, { publishedSince: "2025-01-01" }).map((l) => l.id))
+    .toEqual(["LB2"]);
 });
 
 test("unpublishedResources returns resources flagged dirty", () => {
