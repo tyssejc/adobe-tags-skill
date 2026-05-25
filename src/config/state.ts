@@ -1,4 +1,4 @@
-import { parse as parseToml } from "smol-toml";
+import { parse as parseToml, stringify as stringifyToml } from "smol-toml";
 import { ensureDirFor } from "../util/fs.ts";
 
 export interface State {
@@ -17,7 +17,10 @@ export async function loadState(path: string): Promise<State> {
 
 export async function saveState(path: string, state: State): Promise<void> {
   await ensureDirFor(path);
-  const lines: string[] = [];
-  if (state.default_property) lines.push(`default_property = "${state.default_property}"`);
-  await Bun.write(path, lines.join("\n") + (lines.length ? "\n" : ""));
+  const tomlObj: Record<string, string> = {};
+  if (state.default_property) {
+    tomlObj.default_property = state.default_property;
+  }
+  const content = stringifyToml(tomlObj);
+  await Bun.write(path, content + (content.length ? "\n" : ""));
 }

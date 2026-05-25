@@ -41,3 +41,16 @@ test("saveState clears default_property when null", async () => {
     expect(await loadState(path)).toEqual({ default_property: null });
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
+
+test("saveState handles values with backslashes and quotes (TOML-safe)", async () => {
+  const dir = tmp();
+  try {
+    const path = join(dir, "state.toml");
+    // A user could plausibly type a path-like alias with a backslash on Windows,
+    // or paste an alias that happens to contain a quote. Either should survive
+    // a round trip without corrupting the file.
+    const tricky = 'weird\\alias"with-quote';
+    await saveState(path, { default_property: tricky });
+    expect(await loadState(path)).toEqual({ default_property: tricky });
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
