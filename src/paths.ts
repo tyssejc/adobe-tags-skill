@@ -11,6 +11,10 @@ export function configPath(env: Env = process.env): string {
   return `${base(env, "XDG_CONFIG_HOME", ".config")}/adobe-tags/config.toml`;
 }
 
+export function statePath(env: Env = process.env): string {
+  return `${base(env, "XDG_CONFIG_HOME", ".config")}/adobe-tags/state.toml`;
+}
+
 export function cacheDir(env: Env = process.env): string {
   return `${base(env, "XDG_CACHE_HOME", ".cache")}/adobe-tags`;
 }
