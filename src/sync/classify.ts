@@ -43,7 +43,7 @@ export function extractDataElementRefs(settings: string | null): DataElementRef[
   if (!settings) return [];
   const seen = new Set<string>();
   const out: DataElementRef[] = [];
-  const push = (name: string, kind: "getter" | "setter") => {
+  const push = (name: string | undefined, kind: "getter" | "setter") => {
     if (!name || name.length >= 200) return;
     const key = name + "::" + kind;
     if (seen.has(key)) return;
