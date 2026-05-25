@@ -5,6 +5,8 @@ const DE_TOKEN_RE = /%([^%]+)%/g;
 // _satellite.getVar('name') / _satellite.getVar("name") — string literals only;
 // dynamic names like _satellite.getVar(someVar) are unresolvable statically.
 const DE_GETVAR_RE = /_satellite\.getVar\s*\(\s*(['"])(.*?)\1\s*\)/g;
+// _satellite.setVar('name', value) — only the name (first arg) is tracked.
+const DE_SETVAR_RE = /_satellite\.setVar\s*\(\s*(['"])(.*?)\1/g;
 
 function safeParse(settings: string | null): any {
   if (!settings) return null;
@@ -32,24 +34,35 @@ export function extractCode(settings: string | null): string | null {
   return parts.length > 0 ? parts.join("\n") : null;
 }
 
-export function extractDataElementRefs(settings: string | null): string[] {
+export interface DataElementRef {
+  name: string;
+  kind: "getter" | "setter";
+}
+
+export function extractDataElementRefs(settings: string | null): DataElementRef[] {
   if (!settings) return [];
-  const names = new Set<string>();
+  const seen = new Set<string>();
+  const out: DataElementRef[] = [];
+  const push = (name: string | undefined, kind: "getter" | "setter") => {
+    if (!name || name.length >= 200) return;
+    const key = name + "::" + kind;
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push({ name, kind });
+  };
   let m: RegExpExecArray | null;
-  // %name% tokens — substituted at runtime in form-field settings (URLs, selectors, conditions).
   DE_TOKEN_RE.lastIndex = 0;
   while ((m = DE_TOKEN_RE.exec(settings)) !== null) {
-    if (m[1] && !m[1].includes("{") && m[1].length < 200) names.add(m[1]);
+    if (m[1] && !m[1].includes("{")) push(m[1], "getter");
   }
-  // _satellite.getVar() calls — scan the decoded JS source, not the JSON-escaped settings string.
   const code = extractCode(settings);
   if (code) {
     DE_GETVAR_RE.lastIndex = 0;
-    while ((m = DE_GETVAR_RE.exec(code)) !== null) {
-      if (m[2] && m[2].length < 200) names.add(m[2]);
-    }
+    while ((m = DE_GETVAR_RE.exec(code)) !== null) push(m[2], "getter");
+    DE_SETVAR_RE.lastIndex = 0;
+    while ((m = DE_SETVAR_RE.exec(code)) !== null) push(m[2], "setter");
   }
-  return [...names];
+  return out;
 }
 
 export function buildSearchText(name: string, settings: string | null): string {

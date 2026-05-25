@@ -2,7 +2,7 @@ import { test, expect } from "bun:test";
 import { Database } from "bun:sqlite";
 import { openDbAt } from "./db.ts";
 import {
-  upsertResource, linkRuleComponent, recordVariableSet, recordTrigger,
+  upsertResource, linkRuleComponent, recordVariableSet, recordTrigger, recordDataElementRef,
   findResourcesSettingVariable, listRules, refsToDataElement, triggerHistogram, grepCode, setMeta, getMeta,
   countByType, resetDerivedTables, recordLibrary, recordEnvironment, unpublishedResources,
   listLibraries,
@@ -108,6 +108,18 @@ test("listLibraries sorts by published_at desc, filters by name and date", () =>
   // publishedSince keeps only libraries with published_at >= the given date.
   expect(listLibraries(d, { publishedSince: "2025-01-01" }).map((l) => l.id))
     .toEqual(["LB2"]);
+});
+
+test("refsToDataElement splits getters and setters", () => {
+  const d = db();
+  upsertResource(d, { id: "rc1", type: "rule_component", name: "Reader", enabled: true, deleted: false, dirty: false, delegate_descriptor_id: null, head_revision_number: 0, head_settings_json: null, updated_at: "x", search_text: "" });
+  upsertResource(d, { id: "rc2", type: "rule_component", name: "Writer", enabled: true, deleted: false, dirty: false, delegate_descriptor_id: null, head_revision_number: 0, head_settings_json: null, updated_at: "x", search_text: "" });
+  recordDataElementRef(d, "rc1", "cartTotal", "getter");
+  recordDataElementRef(d, "rc2", "cartTotal", "setter");
+  expect(refsToDataElement(d, "cartTotal").map((r) => `${r.kind}:${r.name}`).sort())
+    .toEqual(["getter:Reader", "setter:Writer"]);
+  expect(refsToDataElement(d, "cartTotal", { kind: "getter" }).map((r) => r.name)).toEqual(["Reader"]);
+  expect(refsToDataElement(d, "cartTotal", { kind: "setter" }).map((r) => r.name)).toEqual(["Writer"]);
 });
 
 test("unpublishedResources returns resources flagged dirty", () => {

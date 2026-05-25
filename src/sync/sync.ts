@@ -44,7 +44,7 @@ export async function syncProperty(db: Database, client: ReactorClient, property
       if (ddi.includes("::actions::")) {
         for (const v of extractVariables(settings)) recordVariableSet(db, c.id, v);
       }
-      for (const ref of extractDataElementRefs(settings)) recordDataElementRef(db, c.id, ref);
+      for (const ref of extractDataElementRefs(settings)) recordDataElementRef(db, c.id, ref.name, ref.kind);
     }
   }
 
@@ -58,7 +58,7 @@ export async function syncProperty(db: Database, client: ReactorClient, property
       delegate_descriptor_id: a.delegate_descriptor_id ?? null, head_revision_number: a.revision_number ?? null,
       head_settings_json: settings, updated_at: a.updated_at ?? null, search_text: buildSearchText(a.name ?? "", settings),
     });
-    for (const ref of extractDataElementRefs(settings)) recordDataElementRef(db, d.id, ref);
+    for (const ref of extractDataElementRefs(settings)) recordDataElementRef(db, d.id, ref.name, ref.kind);
     // Data elements (esp. custom-code DEs that build s.products and set events) often
     // set Analytics variables as a side effect of their evaluation.
     for (const v of extractVariables(settings)) recordVariableSet(db, d.id, v);

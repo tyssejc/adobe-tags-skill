@@ -11,7 +11,10 @@ test("extractVariables finds eVarN/eventN/propN anywhere in settings (declarativ
 
 test("extractDataElementRefs finds %name% tokens", () => {
   const settings = JSON.stringify({ value: "%cartId%-%userType%" });
-  expect(extractDataElementRefs(settings).sort()).toEqual(["cartId", "userType"]);
+  expect(extractDataElementRefs(settings).sort((a, b) => a.name.localeCompare(b.name))).toEqual([
+    { name: "cartId", kind: "getter" },
+    { name: "userType", kind: "getter" },
+  ]);
 });
 
 test("extractDataElementRefs finds _satellite.getVar('name') calls in custom code", () => {
@@ -21,7 +24,11 @@ test("extractDataElementRefs finds _satellite.getVar('name') calls in custom cod
             "var c = _satellite.getVar( 'with spaces' );\n" +
             "var d = _satellite.getVar(dynamicName); // not statically resolvable",
   });
-  expect(extractDataElementRefs(settings).sort()).toEqual(["orderTax", "orderTotal", "with spaces"]);
+  expect(extractDataElementRefs(settings).sort((a, b) => a.name.localeCompare(b.name))).toEqual([
+    { name: "orderTax", kind: "getter" },
+    { name: "orderTotal", kind: "getter" },
+    { name: "with spaces", kind: "getter" },
+  ]);
 });
 
 test("extractDataElementRefs combines %token% and getVar() references without duplicates", () => {
@@ -29,7 +36,35 @@ test("extractDataElementRefs combines %token% and getVar() references without du
     source: "_satellite.getVar('cartId'); // also appears as %cartId% elsewhere",
     value: "%cartId%-%userType%",
   });
-  expect(extractDataElementRefs(settings).sort()).toEqual(["cartId", "userType"]);
+  expect(extractDataElementRefs(settings).sort((a, b) => a.name.localeCompare(b.name))).toEqual([
+    { name: "cartId", kind: "getter" },
+    { name: "userType", kind: "getter" },
+  ]);
+});
+
+test("extractDataElementRefs labels setters from _satellite.setVar() calls", () => {
+  const settings = JSON.stringify({
+    source: "_satellite.setVar('cartTotal', 42);\n" +
+            "var x = _satellite.getVar('cartTotal');",
+  });
+  const refs = extractDataElementRefs(settings);
+  expect(refs.sort((a, b) => a.kind.localeCompare(b.kind))).toEqual([
+    { name: "cartTotal", kind: "getter" },
+    { name: "cartTotal", kind: "setter" },
+  ]);
+});
+
+test("extractDataElementRefs labels %name% tokens as getters", () => {
+  const settings = JSON.stringify({ value: "%cartId%" });
+  expect(extractDataElementRefs(settings)).toEqual([{ name: "cartId", kind: "getter" }]);
+});
+
+test("extractDataElementRefs deduplicates within the same (name, kind) pair", () => {
+  const settings = JSON.stringify({
+    source: "_satellite.getVar('x'); _satellite.getVar('x');",
+    value: "%x%",
+  });
+  expect(extractDataElementRefs(settings)).toEqual([{ name: "x", kind: "getter" }]);
 });
 
 test("extractCode returns source from custom-code settings", () => {
