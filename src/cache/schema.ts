@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
 export const DDL = `
 CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
@@ -32,9 +32,11 @@ CREATE INDEX IF NOT EXISTS idx_variable_sets_var ON variable_sets(variable);
 
 CREATE TABLE IF NOT EXISTS data_element_refs (
   source_id TEXT NOT NULL,
-  data_element_name TEXT NOT NULL
+  data_element_name TEXT NOT NULL,
+  kind TEXT NOT NULL DEFAULT 'getter'
 );
 CREATE INDEX IF NOT EXISTS idx_de_refs_name ON data_element_refs(data_element_name);
+CREATE INDEX IF NOT EXISTS idx_de_refs_name_kind ON data_element_refs(data_element_name, kind);
 
 CREATE TABLE IF NOT EXISTS rule_triggers (
   rule_id TEXT NOT NULL,

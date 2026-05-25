@@ -36,8 +36,14 @@ export function recordVariableSet(db: Database, sourceId: string, variable: stri
   db.query("INSERT INTO variable_sets (source_id, variable) VALUES (?, ?)").run(sourceId, variable);
 }
 
-export function recordDataElementRef(db: Database, sourceId: string, name: string): void {
-  db.query("INSERT INTO data_element_refs (source_id, data_element_name) VALUES (?, ?)").run(sourceId, name);
+export function recordDataElementRef(
+  db: Database,
+  sourceId: string,
+  name: string,
+  kind: "getter" | "setter",
+): void {
+  db.query("INSERT INTO data_element_refs (source_id, data_element_name, kind) VALUES (?, ?, ?)")
+    .run(sourceId, name, kind);
 }
 
 export function recordTrigger(db: Database, ruleId: string, eventDelegateId: string): void {
@@ -87,10 +93,25 @@ export function listDataElements(db: Database, opts: { unusedOnly?: boolean; typ
   return db.query(sql).all(params) as ResourceRow[];
 }
 
-export function refsToDataElement(db: Database, name: string): { id: string; name: string; type: string }[] {
-  return db.query(`SELECT r.id AS id, r.name AS name, r.type AS type
+export interface DataElementRefRow {
+  id: string;
+  name: string;
+  type: string;
+  kind: "getter" | "setter";
+}
+
+export function refsToDataElement(
+  db: Database,
+  name: string,
+  opts: { kind?: "getter" | "setter" } = {},
+): DataElementRefRow[] {
+  let sql = `SELECT r.id AS id, r.name AS name, r.type AS type, dr.kind AS kind
     FROM data_element_refs dr JOIN resources r ON r.id = dr.source_id
-    WHERE dr.data_element_name = ? AND r.deleted = 0 ORDER BY r.type, r.name`).all(name) as { id: string; name: string; type: string }[];
+    WHERE dr.data_element_name = $name AND r.deleted = 0`;
+  const params: Record<string, string> = { $name: name };
+  if (opts.kind) { sql += " AND dr.kind = $kind"; params.$kind = opts.kind; }
+  sql += " ORDER BY dr.kind, r.type, r.name";
+  return db.query(sql).all(params) as DataElementRefRow[];
 }
 
 export function triggerHistogram(db: Database): { event_delegate_id: string; count: number }[] {
