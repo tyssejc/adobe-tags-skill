@@ -94,6 +94,9 @@ registered in `src/cli.ts`'s `COMMANDS` map under noun `skill`.
 
 ### 4. Homebrew formula (`Formula/cadmium.rb`)
 
+Distributed via the personal tap **`tyssejc/tap`** (GitHub repo `homebrew-tap`),
+installed as `brew install tyssejc/tap/cadmium`. Local-only during development.
+
 - `depends_on "bun" => :build` — build-only; the runtime is embedded.
 - Stable release path: `url` → GitHub release source tarball + `sha256`.
 - `head do` block → this git repo, so local iteration can build from HEAD.
@@ -119,10 +122,13 @@ a public binary tap.
 
 1. Add the `skill` + `version` commands, confirm `bun test` passes and a fresh
    `bun build --compile` binary runs `cadmium version` / `cadmium skill install`.
-2. Create a local tap: `brew tap-new <you>/local` (one-time).
+2. Create a local tap: `brew tap-new tyssejc/tap` (one-time). The repo is named
+   `homebrew-tap`; the `homebrew-` prefix is implied in all `brew` commands. It
+   stays local-only until cadmium installs green, then gets pushed to GitHub.
 3. Drop `cadmium.rb` into the tap (or install the formula file directly).
-4. `brew install --HEAD <you>/local/cadmium` — builds from current git HEAD,
-   exercising the real formula install path (not a shortcut).
+4. `brew install --HEAD tyssejc/tap/cadmium` — builds from current git HEAD
+   (so iterating means committing), exercising the real formula install path.
+5. `brew audit --strict --new cadmium` — formula linter; must pass.
 5. Run `cadmium skill install`, then drive cadmium from Claude Code to confirm
    the skill resolves and the binary works end-to-end, as a new user would
    experience it.
