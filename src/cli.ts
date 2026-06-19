@@ -9,6 +9,7 @@ import { cmdDesList, cmdDesRefs } from "./commands/des.ts";
 import { cmdLibsList } from "./commands/libs.ts";
 import { cmdCodeSearch } from "./commands/code.ts";
 import { cmdAnalyticsSetters } from "./commands/analytics.ts";
+import { VERSION } from "./version.ts";
 
 // noun -> verb -> handler
 const COMMANDS: Record<string, Record<string, Cmd>> = {
@@ -57,6 +58,10 @@ function helpText(): string {
 
 export async function run(argv: string[]): Promise<number> {
   const [rawNoun, verb, ...rest] = argv;
+  if (rawNoun === "--version" || rawNoun === "-v" || (rawNoun === "version" && !verb)) {
+    console.log(VERSION);
+    return 0;
+  }
   if (!rawNoun || rawNoun === "--help" || rawNoun === "-h") {
     console.log(helpText());
     return 0;
