@@ -9,6 +9,7 @@ import { cmdDesList, cmdDesRefs } from "./commands/des.ts";
 import { cmdLibsList } from "./commands/libs.ts";
 import { cmdCodeSearch } from "./commands/code.ts";
 import { cmdAnalyticsSetters } from "./commands/analytics.ts";
+import { cmdSkillInstall, cmdSkillPath } from "./commands/skill.ts";
 import { VERSION } from "./version.ts";
 
 // noun -> verb -> handler
@@ -39,6 +40,10 @@ const COMMANDS: Record<string, Record<string, Cmd>> = {
   },
   analytics: {
     setters: cmdAnalyticsSetters,
+  },
+  skill: {
+    install: cmdSkillInstall,
+    path: cmdSkillPath,
   },
 };
 
@@ -83,6 +88,7 @@ export async function run(argv: string[]): Promise<number> {
     options: {
       json: { type: "boolean", default: false },
       full: { type: "boolean", default: false },
+      force: { type: "boolean", default: false },
       disabled: { type: "boolean", default: false },
       unused: { type: "boolean", default: false },
       getters: { type: "boolean", default: false },
