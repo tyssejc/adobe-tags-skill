@@ -2,16 +2,16 @@ class Cadmium < Formula
   desc "Read-only analysis of Adobe Tags (Launch) properties from the CLI"
   homepage "https://github.com/tyssejc/adobe-tags-skill"
   license "MIT"
-
-  # Stable release path — fill in when the first tagged tarball is published.
-  url "https://github.com/tyssejc/adobe-tags-skill/archive/refs/tags/v0.1.0.tar.gz"
-  sha256 "REPLACE_WITH_RELEASE_SHA256"
-  version "0.1.0"
-
   head "https://github.com/tyssejc/adobe-tags-skill.git", branch: "main"
 
-  # Bun is in homebrew-core. If `brew install --HEAD` fails to resolve this at
-  # build time, fall back to the tap form: "oven-sh/bun/bun".
+  # HEAD-only until the first release is cut. When you tag one on GitHub, add a
+  # stable build ABOVE `license` (Homebrew requires url/sha256 before license):
+  #   url "https://github.com/tyssejc/adobe-tags-skill/archive/refs/tags/v0.1.0.tar.gz"
+  #   sha256 "<output of: shasum -a 256 on that tarball>"
+  # Do NOT set `version` explicitly — Homebrew scans it from the URL.
+
+  # Bun is in homebrew-core. If `brew install` fails to resolve this at build
+  # time, fall back to the tap form: "oven-sh/bun/bun".
   depends_on "bun" => :build
 
   def install
@@ -28,7 +28,7 @@ class Cadmium < Formula
   end
 
   test do
-    assert_match version.to_s, shell_output("#{bin}/cadmium version")
+    assert_match(/\d+\.\d+\.\d+/, shell_output("#{bin}/cadmium version"))
     system bin/"cadmium", "--help"
   end
 end
