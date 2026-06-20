@@ -5,14 +5,15 @@ Read-only analysis of Adobe Tags (Launch) properties from the command line and f
 ## Install
 
 ```bash
-bun install
-bun link            # makes `cadmium` available on PATH
+brew install tyssejc/tap/cadmium
+cadmium skill install      # copies the adobe-tags skill into ~/.claude/skills
 ```
 
-Install the skill so Claude Code can drive the CLI:
+### From source (development)
 
 ```bash
-cp -r skill ~/.claude/skills/adobe-tags
+bun install
+bun run bin/cadmium.ts --help
 ```
 
 ## Setup

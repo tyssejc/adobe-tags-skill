@@ -26,3 +26,10 @@ export function cacheDbPath(alias: string, env: Env = process.env): string {
 export function tokenCachePath(org: string, env: Env = process.env): string {
   return `${cacheDir(env)}/.tokens/${org}.json`;
 }
+
+export function skillInstallDir(env: Env = process.env): string {
+  const claudeDir = env.CLAUDE_CONFIG_DIR && env.CLAUDE_CONFIG_DIR.length > 0
+    ? env.CLAUDE_CONFIG_DIR
+    : `${env.HOME ?? ""}/.claude`;
+  return `${claudeDir}/skills/adobe-tags`;
+}
