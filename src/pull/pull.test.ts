@@ -29,7 +29,7 @@ test("pullProperty populates variables, triggers, refs, and meta", async () => {
   expect(findResourcesSettingVariable(db, "eVar20")).toEqual([{ id: "r1", name: "Cart", type: "rule" }]);
   expect(triggerHistogram(db)).toEqual([{ event_delegate_id: "core::events::dom-ready", count: 1 }]);
   expect(refsToDataElement(db, "cartId").map((x) => x.id)).toContain("rc1");
-  expect(getMeta(db, "last_synced_at")).not.toBeNull();
+  expect(getMeta(db, "last_pulled_at")).not.toBeNull();
 });
 
 test("pullProperty is idempotent across repeated runs (no double-count)", async () => {

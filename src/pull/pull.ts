@@ -103,5 +103,5 @@ export async function pullProperty(db: Database, client: ReactorClient, property
     });
   }
 
-  setMeta(db, "last_synced_at", new Date().toISOString());
+  setMeta(db, "last_pulled_at", new Date().toISOString());
 }

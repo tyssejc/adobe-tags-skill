@@ -116,9 +116,9 @@ export const cmdPropertySync: Cmd = async (_pos, flags) => {
 export const cmdPropertyStatus: Cmd = async (_pos, flags) => {
   const alias = await resolveAlias(flags);
   const db = await openDb(alias);
-  const synced = getMeta(db, "last_synced_at");
+  const pulled = getMeta(db, "last_pulled_at");
   const counts = countByType(db);
-  console.log(format({ alias, last_synced_at: synced ?? null, counts }, { json: !!flags.json }));
+  console.log(format({ alias, last_pulled_at: pulled ?? null, counts }, { json: !!flags.json }));
   return 0;
 };
 
@@ -129,7 +129,7 @@ export const cmdPropertyOverview: Cmd = async (_pos, flags) => {
   const counts = countByType(db);
   console.log(format({
     alias,
-    last_synced_at: getMeta(db, "last_synced_at"),
+    last_pulled_at: getMeta(db, "last_pulled_at"),
     rules: counts.rule ?? 0,
     data_elements: counts.data_element ?? 0,
     rule_components: counts.rule_component ?? 0,

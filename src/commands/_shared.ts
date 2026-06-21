@@ -6,7 +6,7 @@ import { statePath } from "../paths.ts";
 
 export async function openSynced(alias: string): Promise<Database> {
   const db = await openDb(alias);
-  if (!getMeta(db, "last_synced_at")) {
+  if (!getMeta(db, "last_pulled_at")) {
     throw new Error(`Property '${alias}' has never been synced. Run: cadmium sync ${alias}`);
   }
   return db;
