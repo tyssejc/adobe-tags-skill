@@ -21,7 +21,7 @@ bun run bin/cadmium.ts --help
 ```bash
 cadmium property init                    # prompts for org + property, validates against Reactor
 cadmium property use acme/web            # set default so subsequent commands don't need -p
-cadmium property sync                    # pull latest from Reactor
+cadmium property pull                    # pull latest from Reactor
 cadmium property overview                # high-level counts
 ```
 
@@ -30,7 +30,7 @@ Config lives at `~/.config/adobe-tags/config.toml`; cache at `~/.cache/adobe-tag
 ## Commands
 
 ```
-cadmium property  init | use | show | list | sync | status | overview | dirty
+cadmium property  init | use | show | list | pull | status | overview | dirty
 cadmium rules     list | triggers
 cadmium des       list | refs
 cadmium libs      list

@@ -10,8 +10,8 @@ Use the `cadmium` CLI to answer read-only questions about an Adobe Tags property
 ## Preflight (always)
 
 1. Run `cadmium property status --json` (with `-p <alias>` if the property isn't the current default) to check freshness.
-2. If `last_synced_at` is null → run `cadmium property sync` first.
-3. If `last_synced_at` is older than ~1 hour, or the question implies recent edits ("did someone just change…"), suggest `cadmium property sync` before answering.
+2. If `last_pulled_at` is null → run `cadmium property pull` first.
+3. If `last_pulled_at` is older than ~1 hour, or the question implies recent edits ("did someone just change…"), suggest `cadmium property pull` before answering.
 4. If the command errors with "No property selected" → ask the user which alias to use, or suggest `cadmium property use <alias>` to set a persistent default.
 5. If the user mentions a property by alias for the first time, suggest `cadmium property use <alias>` so subsequent commands don't need `-p`.
 

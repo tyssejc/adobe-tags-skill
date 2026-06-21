@@ -8,7 +8,7 @@ import { pullProperty } from "../pull/pull.ts";
 import { countByType, getMeta, unpublishedResources } from "../cache/repo.ts";
 import { ensureDirFor } from "../util/fs.ts";
 import { format } from "../output.ts";
-import { resolveAlias, openSynced } from "./_shared.ts";
+import { resolveAlias, openPulled } from "./_shared.ts";
 import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import type { Cmd } from "../command.ts";
@@ -56,7 +56,7 @@ property_id = "${propertyId}"
     await ensureDirFor(path);
     await Bun.write(path, toml);
     await Bun.$`chmod 600 ${path}`.quiet();
-    console.log(`\nValidated and wrote ${path}. Try: cadmium property use ${propAlias} && cadmium property sync`);
+    console.log(`\nValidated and wrote ${path}. Try: cadmium property use ${propAlias} && cadmium property pull`);
     return 0;
   } finally {
     rl.close();
@@ -96,8 +96,8 @@ export const cmdPropertyList: Cmd = async (_pos, flags) => {
   return 0;
 };
 
-// `cadmium property sync` — pull latest from Reactor.
-export const cmdPropertySync: Cmd = async (_pos, flags) => {
+// `cadmium property pull` — pull latest from Reactor.
+export const cmdPropertyPull: Cmd = async (_pos, flags) => {
   const alias = await resolveAlias(flags);
   const cfg = await loadConfig(configPath());
   const rp = resolveProperty(cfg, alias);
@@ -108,7 +108,7 @@ export const cmdPropertySync: Cmd = async (_pos, flags) => {
   const started = Date.now();
   await pullProperty(db, client, rp.propertyId, { full: !!flags.full });
   const counts = countByType(db);
-  console.log(format({ alias, synced: true, counts, elapsed_ms: Date.now() - started }, { json: !!flags.json }));
+  console.log(format({ alias, pulled: true, counts, elapsed_ms: Date.now() - started }, { json: !!flags.json }));
   return 0;
 };
 
@@ -125,7 +125,7 @@ export const cmdPropertyStatus: Cmd = async (_pos, flags) => {
 // `cadmium property overview` — high-level resource counts.
 export const cmdPropertyOverview: Cmd = async (_pos, flags) => {
   const alias = await resolveAlias(flags);
-  const db = await openSynced(alias);
+  const db = await openPulled(alias);
   const counts = countByType(db);
   console.log(format({
     alias,
@@ -141,7 +141,7 @@ export const cmdPropertyOverview: Cmd = async (_pos, flags) => {
 // `cadmium property dirty` — unpublished resources (dirty flag).
 export const cmdPropertyDirty: Cmd = async (_pos, flags) => {
   const alias = await resolveAlias(flags);
-  const db = await openSynced(alias);
+  const db = await openPulled(alias);
   const rows = unpublishedResources(db);
   console.log(format(rows, { json: !!flags.json, columns: ["type", "name", "updated_at", "id"] }));
   return 0;
