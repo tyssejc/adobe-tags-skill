@@ -4,7 +4,7 @@ import { configPath, statePath } from "../paths.ts";
 import { loadState, saveState } from "../config/state.ts";
 import { getAccessToken } from "../auth/token.ts";
 import { ReactorClient } from "../reactor/client.ts";
-import { syncProperty } from "../sync/sync.ts";
+import { pullProperty } from "../pull/pull.ts";
 import { countByType, getMeta, unpublishedResources } from "../cache/repo.ts";
 import { ensureDirFor } from "../util/fs.ts";
 import { format } from "../output.ts";
@@ -106,7 +106,7 @@ export const cmdPropertySync: Cmd = async (_pos, flags) => {
   const client = new ReactorClient({ token, clientId: rp.org.client_id, imsOrg: rp.org.ims_org_id });
   const db = await openDb(alias);
   const started = Date.now();
-  await syncProperty(db, client, rp.propertyId, { full: !!flags.full });
+  await pullProperty(db, client, rp.propertyId, { full: !!flags.full });
   const counts = countByType(db);
   console.log(format({ alias, synced: true, counts, elapsed_ms: Date.now() - started }, { json: !!flags.json }));
   return 0;

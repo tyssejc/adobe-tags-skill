@@ -8,9 +8,9 @@ import {
   extractVariables, extractDataElementRefs, buildSearchText,
 } from "./classify.ts";
 
-interface SyncOpts { full?: boolean; }
+interface PullOpts { full?: boolean; }
 
-export async function syncProperty(db: Database, client: ReactorClient, propertyId: string, _opts: SyncOpts = {}): Promise<void> {
+export async function pullProperty(db: Database, client: ReactorClient, propertyId: string, _opts: PullOpts = {}): Promise<void> {
   // Always a full pull for now; `_opts.full` is reserved for a future incremental mode.
   resetDerivedTables(db);
 
