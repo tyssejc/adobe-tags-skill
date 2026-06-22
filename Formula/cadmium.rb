@@ -1,14 +1,10 @@
 class Cadmium < Formula
   desc "Read-only analysis of Adobe Tags (Launch) properties from the CLI"
   homepage "https://github.com/tyssejc/adobe-tags-skill"
+  url "https://github.com/tyssejc/adobe-tags-skill/archive/refs/tags/v0.1.0.tar.gz"
+  sha256 "7f7ffc0af421d386e6d58c3df5483feeaef40fdda1f9188ce4377d35fb4fdd1c"
   license "MIT"
   head "https://github.com/tyssejc/adobe-tags-skill.git", branch: "main"
-
-  # HEAD-only until the first release is cut. When you tag one on GitHub, add a
-  # stable build ABOVE `license` (Homebrew requires url/sha256 before license):
-  #   url "https://github.com/tyssejc/adobe-tags-skill/archive/refs/tags/v0.1.0.tar.gz"
-  #   sha256 "<output of: shasum -a 256 on that tarball>"
-  # Do NOT set `version` explicitly — Homebrew scans it from the URL.
 
   # Bun is in homebrew-core. If `brew install` fails to resolve this at build
   # time, fall back to the tap form: "oven-sh/bun/bun".
