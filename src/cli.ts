@@ -2,7 +2,7 @@ import { parseArgs } from "node:util";
 import type { Cmd } from "./command.ts";
 import {
   cmdPropertyInit, cmdPropertyUse, cmdPropertyShow, cmdPropertyList,
-  cmdPropertySync, cmdPropertyStatus, cmdPropertyOverview, cmdPropertyDirty,
+  cmdPropertyPull, cmdPropertyStatus, cmdPropertyOverview, cmdPropertyDirty,
 } from "./commands/property.ts";
 import { cmdRulesList, cmdRulesTriggers } from "./commands/rules.ts";
 import { cmdDesList, cmdDesRefs } from "./commands/des.ts";
@@ -19,7 +19,7 @@ const COMMANDS: Record<string, Record<string, Cmd>> = {
     use: cmdPropertyUse,
     show: cmdPropertyShow,
     list: cmdPropertyList,
-    sync: cmdPropertySync,
+    pull: cmdPropertyPull,
     status: cmdPropertyStatus,
     overview: cmdPropertyOverview,
     dirty: cmdPropertyDirty,

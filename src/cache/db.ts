@@ -17,7 +17,7 @@ export function openDbAt(path: string): Database {
   const row = db.query("SELECT value FROM meta WHERE key = 'schema_version'").get() as { value: string } | null;
   const stored = row?.value ?? null;
   if (stored !== null && stored !== String(SCHEMA_VERSION)) {
-    // Stale cache from a previous schema. Full-pull sync rebuilds everything, so
+    // Stale cache from a previous schema. Full pull rebuilds everything, so
     // drop all tables and start fresh rather than carry incompatible columns.
     const tables = db.query(
       "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'",

@@ -54,8 +54,8 @@ test("grepCode finds resources via search_text", () => {
 
 test("meta round-trips", () => {
   const d = db();
-  setMeta(d, "last_synced_at", "2026-05-22T10:00:00Z");
-  expect(getMeta(d, "last_synced_at")).toBe("2026-05-22T10:00:00Z");
+  setMeta(d, "last_pulled_at", "2026-05-22T10:00:00Z");
+  expect(getMeta(d, "last_pulled_at")).toBe("2026-05-22T10:00:00Z");
 });
 
 test("grepCode treats underscore as literal, not a wildcard", () => {
